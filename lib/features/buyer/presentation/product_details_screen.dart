@@ -1,15 +1,17 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/models/book.dart';
+import '../../../core/providers/cart_provider.dart';
 
-class ProductDetailsScreen extends StatelessWidget {
+class ProductDetailsScreen extends ConsumerWidget {
   final String bookId;
 
   const ProductDetailsScreen({super.key, required this.bookId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // In a real app, we would fetch by ID. Here we find in mock list.
     final book = Book.mockBooks.firstWhere(
       (b) => b.id == bookId,
@@ -102,6 +104,7 @@ class ProductDetailsScreen extends StatelessWidget {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () {
+                  ref.read(cartProvider.notifier).addToCart(book);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Added ${book.title} to cart')),
                   );

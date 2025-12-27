@@ -8,6 +8,8 @@ import '../../features/seller/presentation/store_profile_screen.dart';
 import '../../features/seller/presentation/add_product_screen.dart';
 import '../../features/buyer/presentation/buyer_home_screen.dart';
 import '../../features/buyer/presentation/product_details_screen.dart';
+import '../../features/buyer/presentation/cart_screen.dart';
+import '../../features/buyer/presentation/checkout_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -43,6 +45,13 @@ final appRouter = GoRouter(
         return ProductDetailsScreen(bookId: id);
       },
     ),
-    // TODO: Add other routes here
+    GoRoute(
+      path: '/cart',
+      builder: (context, state) => const CartScreen(),
+    ),
+    GoRoute(
+      path: '/checkout',
+      builder: (context, state) => const CheckoutScreen(),
+    ),
   ],
 );

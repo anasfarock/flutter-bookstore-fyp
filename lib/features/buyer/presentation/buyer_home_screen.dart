@@ -23,7 +23,7 @@ class BuyerHomeScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {}, // TODO: Navigate to Cart
+            onPressed: () => context.push('/cart'),
           ),
         ],
       ),
