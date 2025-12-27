@@ -1,7 +1,7 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:my_app/core/models/user_model.dart';
+import 'package:my_app/features/auth/data/auth_repository.dart';
 
 class UserRepository {
   final FirebaseFirestore _firestore;
@@ -23,4 +23,23 @@ class UserRepository {
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository(FirebaseFirestore.instance);
+});
+
+
+
+final currentUserProfileProvider = StreamProvider<UserModel?>((ref) {
+  final authState = ref.watch(authStateProvider);
+  
+  return authState.when(
+    data: (user) {
+      if (user == null) return Stream.value(null);
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots()
+          .map((doc) => doc.exists ? UserModel.fromMap(doc.data()!) : null);
+    },
+    loading: () => const Stream.empty(),
+    error: (_, __) => const Stream.empty(),
+  );
 });
