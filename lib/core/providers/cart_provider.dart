@@ -2,70 +2,62 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/cart_item.dart';
 import '../models/book.dart';
+import '../../features/buyer/data/cart_repository.dart';
+import '../../features/auth/data/auth_repository.dart';
 
-class CartNotifier extends Notifier<List<CartItem>> {
+class CartNotifier extends StreamNotifier<List<CartItem>> {
   @override
-  List<CartItem> build() {
-    return [];
+  Stream<List<CartItem>> build() {
+    final user = ref.watch(authRepositoryProvider).currentUser;
+    if (user == null) {
+      return Stream.value([]);
+    }
+    return ref.watch(cartRepositoryProvider).getCartKey(user.uid);
   }
 
-  void addToCart(Book book) {
-    // Check if book already exists
-    final existingIndex = state.indexWhere((item) => item.book.id == book.id);
-    if (existingIndex >= 0) {
-      // Increment quantity
-      final oldItem = state[existingIndex];
-      // Create new list to trigger notify (immutability)
-      state = [
-        ...state.sublist(0, existingIndex),
-        oldItem.copyWith(quantity: oldItem.quantity + 1),
-        ...state.sublist(existingIndex + 1),
-      ];
-    } else {
-      // Add new item
-      state = [...state, CartItem(book: book)];
+  Future<void> addToCart(Book book) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user != null) {
+      await ref.read(cartRepositoryProvider).addToCart(user.uid, book);
     }
   }
 
-  void removeFromCart(String bookId) {
-    state = state.where((item) => item.book.id != bookId).toList();
-  }
-
-  void incrementQuantity(String bookId) {
-     final existingIndex = state.indexWhere((item) => item.book.id == bookId);
-     if (existingIndex >= 0) {
-       final oldItem = state[existingIndex];
-       state = [
-        ...state.sublist(0, existingIndex),
-        oldItem.copyWith(quantity: oldItem.quantity + 1),
-        ...state.sublist(existingIndex + 1),
-      ];
-     }
-  }
-
-  void decrementQuantity(String bookId) {
-    final existingIndex = state.indexWhere((item) => item.book.id == bookId);
-    if (existingIndex >= 0) {
-      final oldItem = state[existingIndex];
-      if (oldItem.quantity > 1) {
-         state = [
-        ...state.sublist(0, existingIndex),
-        oldItem.copyWith(quantity: oldItem.quantity - 1),
-        ...state.sublist(existingIndex + 1),
-      ];
-      } else {
-        removeFromCart(bookId);
-      }
+  Future<void> removeFromCart(String bookId) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user != null) {
+      await ref.read(cartRepositoryProvider).removeFromCart(user.uid, bookId);
     }
   }
 
-  void clearCart() {
-    state = [];
+  Future<void> incrementQuantity(String bookId) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user != null) {
+      await ref.read(cartRepositoryProvider).updateQuantity(user.uid, bookId, 1);
+    }
   }
 
-  double get totalAmount {
-    return state.fold(0.0, (sum, item) => sum + item.totalPrice);
+  Future<void> decrementQuantity(String bookId) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user != null) {
+      await ref.read(cartRepositoryProvider).updateQuantity(user.uid, bookId, -1);
+    }
+  }
+
+  Future<void> clearCart() async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user != null) {
+      await ref.read(cartRepositoryProvider).clearCart(user.uid);
+    }
   }
 }
 
-final cartProvider = NotifierProvider<CartNotifier, List<CartItem>>(CartNotifier.new);
+final cartProvider = StreamNotifierProvider<CartNotifier, List<CartItem>>(CartNotifier.new);
+
+// Helper for total amount to keep UI clean
+final cartTotalProvider = Provider<double>((ref) {
+  final cartAsync = ref.watch(cartProvider);
+  return cartAsync.maybeWhen(
+    data: (items) => items.fold(0.0, (sum, item) => sum + item.totalPrice),
+    orElse: () => 0.0,
+  );
+});

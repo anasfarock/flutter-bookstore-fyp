@@ -9,13 +9,17 @@ class CartScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cartItems = ref.watch(cartProvider);
-    final totalAmount = ref.watch(cartProvider.notifier).totalAmount;
+    final cartAsync = ref.watch(cartProvider);
+    final totalAmount = ref.watch(cartTotalProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Your Cart')),
-      body: cartItems.isEmpty
-          ? Center(
+      body: cartAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (cartItems) {
+          if (cartItems.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -29,8 +33,10 @@ class CartScreen extends ConsumerWidget {
                    ),
                 ],
               ),
-            )
-          : Column(
+            );
+          }
+
+          return Column(
               children: [
                 Expanded(
                   child: ListView.separated(
@@ -54,6 +60,7 @@ class CartScreen extends ConsumerWidget {
                                 width: 60,
                                 height: 90,
                                 fit: BoxFit.cover,
+                                errorBuilder: (c, e, s) => Container(width: 60, height: 90, color: Colors.grey),
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -127,7 +134,9 @@ class CartScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-            ),
+            );
+        },
+      ),
     );
   }
 }

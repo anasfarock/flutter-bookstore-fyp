@@ -15,4 +15,18 @@ class CartItem {
   }
 
   double get totalPrice => book.price * quantity;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'book': book.toMap(), // Store full book snapshot or just ID? Snapshot is safer for price changes.
+      'quantity': quantity,
+    };
+  }
+
+  factory CartItem.fromMap(Map<String, dynamic> map) {
+    return CartItem(
+      book: Book.fromMap(map['book'] ?? {}, map['book']['id'] ?? ''),
+      quantity: map['quantity'] ?? 1,
+    );
+  }
 }
