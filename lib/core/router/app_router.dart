@@ -10,6 +10,7 @@ import '../../features/buyer/presentation/buyer_home_screen.dart';
 import '../../features/buyer/presentation/product_details_screen.dart';
 import '../../features/buyer/presentation/cart_screen.dart';
 import '../../features/buyer/presentation/checkout_screen.dart';
+import '../../features/buyer/presentation/buyer_profile_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -52,6 +53,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/checkout',
       builder: (context, state) => const CheckoutScreen(),
+    ),
+    GoRoute(
+      path: '/buyer-profile',
+      builder: (context, state) => const BuyerProfileScreen(),
     ),
   ],
 );

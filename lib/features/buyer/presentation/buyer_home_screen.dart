@@ -16,6 +16,10 @@ class BuyerHomeScreen extends StatelessWidget {
         title: const Text('Discover Books'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => context.push('/buyer-profile'),
+          ),
+          IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
               showSearch(context: context, delegate: BookSearchDelegate(books));
