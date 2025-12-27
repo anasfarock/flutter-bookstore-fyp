@@ -1,35 +1,15 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/providers/inventory_provider.dart';
 
-class InventoryList extends StatelessWidget {
+class InventoryList extends ConsumerWidget {
   const InventoryList({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Mock Data
-    final books = [
-      {
-        'title': 'The Great Gatsby',
-        'author': 'F. Scott Fitzgerald',
-        'price': '\$15.00',
-        'stock': '12',
-        'image': 'https://placehold.co/100x150/png?text=Gatsby'
-      },
-      {
-        'title': '1984',
-        'author': 'George Orwell',
-        'price': '\$12.50',
-        'stock': '8',
-        'image': 'https://placehold.co/100x150/png?text=1984'
-      },
-      {
-        'title': 'Flutter Apprentice',
-        'author': 'Mike Katz',
-        'price': '\$45.00',
-        'stock': '5',
-        'image': 'https://placehold.co/100x150/png?text=Flutter'
-      },
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final books = ref.watch(inventoryProvider);
 
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
@@ -47,19 +27,19 @@ class InventoryList extends StatelessWidget {
               color: Colors.grey[800],
               borderRadius: BorderRadius.circular(4),
               image: DecorationImage(
-                image: NetworkImage(book['image']!),
+                image: NetworkImage(book.imageUrl),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           title: Text(
-            book['title']!,
+            book.title,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(book['author']!),
+              Text(book.author),
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -70,7 +50,7 @@ class InventoryList extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'Stock: ${book['stock']}',
+                      'Stock: 10', // Mock stock for now
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).primaryColor,
@@ -79,7 +59,7 @@ class InventoryList extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    book['price']!,
+                    '\$${book.price.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.greenAccent,
@@ -90,6 +70,16 @@ class InventoryList extends StatelessWidget {
             ],
           ),
           trailing: PopupMenuButton(
+            onSelected: (value) {
+              if (value == 'edit') {
+                context.push('/add-product', extra: book);
+              } else if (value == 'delete') {
+                ref.read(inventoryProvider.notifier).deleteBook(book.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Book Deleted')),
+                );
+              }
+            },
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'edit', child: Text('Edit')),
               const PopupMenuItem(value: 'delete', child: Text('Delete')),

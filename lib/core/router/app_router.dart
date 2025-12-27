@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../models/book.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/seller/presentation/seller_dashboard_screen.dart';
@@ -36,7 +37,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/add-product',
-      builder: (context, state) => const AddProductScreen(),
+      builder: (context, state) {
+        final bookToEdit = state.extra as Book?;
+        return AddProductScreen(bookToEdit: bookToEdit);
+      },
     ),
     GoRoute(
       path: '/buyer-home',
