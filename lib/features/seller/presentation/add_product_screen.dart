@@ -1,5 +1,4 @@
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,12 +18,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   late TextEditingController _titleController;
   late TextEditingController _authorController;
   late TextEditingController _priceController;
-  // late TextEditingController _stockController; // Stock not in Book model yet, skipping for now or adding to model?
-  // Model doesn't have stock, so let's just keep the field for UI but not save it to model for now to keep it simple,
-  // OR update model. The user specifically asked to fix features, so let's stick to what's in the model for functionality.
-  // Actually, the previous view of InventoryList showed stock. Let's check Book model again.
-  // Book model DOES NOT have stock. I should probably add it, but for now I will manage stock only in UI or mock it.
-  // I'll keep the stock controller but not save it to the Book object to avoid breaking model changes right now.
+  late TextEditingController _descriptionController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -32,7 +27,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     _titleController = TextEditingController(text: widget.bookToEdit?.title ?? '');
     _authorController = TextEditingController(text: widget.bookToEdit?.author ?? '');
     _priceController = TextEditingController(text: widget.bookToEdit?.price.toString() ?? '');
-    // _stockController = TextEditingController(text: '10'); // Default mock
+    _descriptionController = TextEditingController(text: widget.bookToEdit?.description ?? '');
   }
 
   @override
@@ -40,7 +35,64 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     _titleController.dispose();
     _authorController.dispose();
     _priceController.dispose();
+    _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveProduct() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final title = _titleController.text;
+      final author = _authorController.text;
+      final price = double.tryParse(_priceController.text) ?? 0.0;
+      final description = _descriptionController.text;
+      final isEditing = widget.bookToEdit != null;
+
+      if (isEditing) {
+        final updatedBook = Book(
+          id: widget.bookToEdit!.id,
+          title: title,
+          author: author,
+          price: price,
+          imageUrl: widget.bookToEdit!.imageUrl,
+          description: description,
+          sellerId: widget.bookToEdit!.sellerId,
+        );
+        await ref.read(inventoryProvider.notifier).updateBook(updatedBook);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Book Updated!')),
+          );
+        }
+      } else {
+        final newBook = Book(
+          id: '', // Notifier will generate
+          title: title,
+          author: author,
+          price: price,
+          imageUrl: 'https://placehold.co/100x150/png?text=${title.split(' ')[0]}',
+          description: description,
+        );
+        await ref.read(inventoryProvider.notifier).addBook(newBook);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Book Added!')),
+          );
+        }
+      }
+      if (mounted) context.pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -82,49 +134,31 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                   labelText: 'Price',
                   prefixIcon: Icon(Icons.attach_money),
                 ),
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Required';
+                  if (double.tryParse(value) == null) return 'Invalid number';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+               TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  prefixIcon: Icon(Icons.description),
+                ),
+                maxLines: 3,
                 validator: (value) =>
-                    value!.isEmpty ? 'Required' : null,
+                    value!.isEmpty ? 'Please enter description' : null,
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final title = _titleController.text;
-                    final author = _authorController.text;
-                    final price = double.tryParse(_priceController.text) ?? 0.0;
-                    
-                    if (isEditing) {
-                      final updatedBook = Book(
-                        id: widget.bookToEdit!.id,
-                        title: title,
-                        author: author,
-                        price: price,
-                        imageUrl: widget.bookToEdit!.imageUrl,
-                        description: widget.bookToEdit!.description,
-                      );
-                      ref.read(inventoryProvider.notifier).updateBook(updatedBook);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Book Updated!')),
-                      );
-                    } else {
-                      final newBook = Book(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        title: title,
-                        author: author,
-                        price: price,
-                        imageUrl: 'https://placehold.co/100x150/png?text=${title.split(' ')[0]}',
-                        description: 'New book description',
-                      );
-                      ref.read(inventoryProvider.notifier).addBook(newBook);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Book Added!')),
-                      );
-                    }
-                    context.pop();
-                  }
-                },
-                child: Text(isEditing ? 'Update Book' : 'Add Book'),
+                onPressed: _isLoading ? null : _saveProduct,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: _isLoading ? const CircularProgressIndicator() : Text(isEditing ? 'Update Book' : 'Add Book'),
               ),
             ],
           ),

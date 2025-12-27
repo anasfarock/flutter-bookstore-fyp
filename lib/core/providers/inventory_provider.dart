@@ -1,53 +1,48 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/book.dart';
+import 'package:my_app/core/models/book.dart';
+import 'package:my_app/features/seller/data/product_repository.dart';
+import 'package:my_app/features/auth/data/auth_repository.dart';
 
-class InventoryNotifier extends Notifier<List<Book>> {
+class InventoryNotifier extends StreamNotifier<List<Book>> {
   @override
-  List<Book> build() {
-    // Initial Mock Data
-    return [
-      Book(
-        id: '1',
-        title: 'The Great Gatsby',
-        author: 'F. Scott Fitzgerald',
-        price: 15.00,
-        imageUrl: 'https://placehold.co/100x150/png?text=Gatsby',
-        description: 'Classic novel.',
-      ),
-      Book(
-        id: '2',
-        title: '1984',
-        author: 'George Orwell',
-        price: 12.50,
-        imageUrl: 'https://placehold.co/100x150/png?text=1984',
-        description: 'Dystopian fiction.',
-      ),
-      Book(
-        id: '3',
-        title: 'Flutter Apprentice',
-        author: 'Mike Katz',
-        price: 45.00,
-        imageUrl: 'https://placehold.co/100x150/png?text=Flutter',
-        description: 'Learn Flutter.',
-      ),
-    ];
+  Stream<List<Book>> build() {
+    final user = ref.watch(authRepositoryProvider).currentUser;
+    if (user == null) {
+      return Stream.value([]);
+    }
+    return ref.watch(productRepositoryProvider).getSellerBooks(user.uid);
   }
 
-  void addBook(Book book) {
-    state = [...state, book];
+  Future<void> addBook(Book book) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user != null) {
+       String docId = book.id;
+       if (docId.isEmpty) {
+         docId = ref.read(productRepositoryProvider).generateId();
+       }
+
+       final bookWithSeller = Book(
+         id: docId,
+         title: book.title,
+         author: book.author,
+         price: book.price,
+         imageUrl: book.imageUrl,
+         description: book.description,
+         rating: book.rating,
+         sellerId: user.uid,
+       );
+       await ref.read(productRepositoryProvider).addBook(bookWithSeller);
+    }
   }
 
-  void updateBook(Book updatedBook) {
-    state = [
-      for (final book in state)
-        if (book.id == updatedBook.id) updatedBook else book
-    ];
+  Future<void> updateBook(Book book) async {
+     await ref.read(productRepositoryProvider).updateBook(book);
   }
 
-  void deleteBook(String bookId) {
-    state = state.where((book) => book.id != bookId).toList();
+  Future<void> deleteBook(String bookId) async {
+    await ref.read(productRepositoryProvider).deleteBook(bookId);
   }
 }
 
-final inventoryProvider = NotifierProvider<InventoryNotifier, List<Book>>(InventoryNotifier.new);
+final inventoryProvider = StreamNotifierProvider<InventoryNotifier, List<Book>>(InventoryNotifier.new);

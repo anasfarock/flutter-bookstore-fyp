@@ -1,15 +1,17 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../auth/data/auth_repository.dart';
 
-class StoreProfileScreen extends StatefulWidget {
+class StoreProfileScreen extends ConsumerStatefulWidget {
   const StoreProfileScreen({super.key});
 
   @override
-  State<StoreProfileScreen> createState() => _StoreProfileScreenState();
+  ConsumerState<StoreProfileScreen> createState() => _StoreProfileScreenState();
 }
 
-class _StoreProfileScreenState extends State<StoreProfileScreen> {
+class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -78,9 +80,11 @@ class _StoreProfileScreenState extends State<StoreProfileScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // Logout Logic
-                    context.go('/login');
+                  onPressed: () async {
+                    await ref.read(authRepositoryProvider).signOut();
+                    if (mounted) {
+                      context.go('/login');
+                    }
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
                   label: const Text('Logout', style: TextStyle(color: Colors.red)),

@@ -1,12 +1,16 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../auth/data/auth_repository.dart';
 
-class BuyerProfileScreen extends StatelessWidget {
+class BuyerProfileScreen extends ConsumerWidget {
   const BuyerProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authRepositoryProvider).currentUser;
+
     return Scaffold(
       appBar: AppBar(title: const Text('My Profile')),
       body: SingleChildScrollView(
@@ -20,12 +24,12 @@ class BuyerProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
              Text(
-              'Buyer Name',
+              'Buyer', // Placeholder for name until we fetch profile from Firestore
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'buyer@example.com',
+              user?.email ?? 'guest@example.com',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
             ),
              const SizedBox(height: 32),
@@ -59,9 +63,11 @@ class BuyerProfileScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  // Logout Logic
-                  context.go('/login');
+                onPressed: () async {
+                  await ref.read(authRepositoryProvider).signOut();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
                 },
                 icon: const Icon(Icons.logout, color: Colors.red),
                 label: const Text('Logout', style: TextStyle(color: Colors.red)),
