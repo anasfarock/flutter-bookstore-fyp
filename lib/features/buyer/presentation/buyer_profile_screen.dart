@@ -34,7 +34,7 @@ class BuyerProfileScreen extends StatelessWidget {
               title: const Text('Edit Profile'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                // TODO: Implement Edit Profile
+                context.push('/edit-profile');
               },
             ),
             const Divider(),
@@ -43,7 +43,7 @@ class BuyerProfileScreen extends StatelessWidget {
               title: const Text('Order History'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                // TODO: Implement Order History
+                context.push('/order-history');
               },
             ),
             const Divider(),
@@ -52,7 +52,7 @@ class BuyerProfileScreen extends StatelessWidget {
               title: const Text('Settings'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                 // TODO: Implement Settings
+                 context.push('/buyer-settings');
               },
             ),
             const SizedBox(height: 48),
