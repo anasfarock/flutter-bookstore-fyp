@@ -7,6 +7,7 @@ import '../../features/seller/presentation/seller_dashboard_screen.dart';
 import '../../features/seller/presentation/store_profile_screen.dart';
 import '../../features/seller/presentation/add_product_screen.dart';
 import '../../features/buyer/presentation/buyer_home_screen.dart';
+import '../../features/buyer/presentation/product_details_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -34,6 +35,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/buyer-home',
       builder: (context, state) => const BuyerHomeScreen(),
+    ),
+    GoRoute(
+      path: '/product-details/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return ProductDetailsScreen(bookId: id);
+      },
     ),
     // TODO: Add other routes here
   ],
