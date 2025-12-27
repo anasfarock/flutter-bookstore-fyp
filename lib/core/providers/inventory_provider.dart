@@ -27,7 +27,7 @@ class InventoryNotifier extends StreamNotifier<List<Book>> {
          title: book.title,
          author: book.author,
          price: book.price,
-         imageUrl: book.imageUrl,
+         imageUrls: book.imageUrls,
          description: book.description,
          rating: book.rating,
          sellerId: user.uid,

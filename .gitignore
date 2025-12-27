@@ -50,3 +50,6 @@ google-services.json
 
 # Analysis logs
 analyze_errors_*.txt
+
+# Environment Variables
+.env

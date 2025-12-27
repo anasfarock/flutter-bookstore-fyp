@@ -40,9 +40,9 @@ class InventoryList extends ConsumerWidget {
                   width: 50,
                   height: 80,
                   color: Colors.grey[800],
-                  child: book.imageUrl.isNotEmpty
+                  child: book.imageUrls.isNotEmpty
                       ? Image.network(
-                          book.imageUrl,
+                          book.imageUrls.first,
                           fit: BoxFit.cover,
                           errorBuilder: (c, e, s) => const Icon(Icons.book),
                         )

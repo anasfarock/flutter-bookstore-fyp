@@ -2,8 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/models/book.dart';
 import '../../../core/providers/inventory_provider.dart';
+import '../../../../core/repositories/storage_repository.dart';
+import 'widgets/product_images_widget.dart';
 
 class AddProductScreen extends ConsumerStatefulWidget {
   final Book? bookToEdit;
@@ -19,6 +22,9 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   late TextEditingController _authorController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
+  
+  List<XFile> _newImages = [];
+  List<String> _existingImageUrls = [];
   bool _isLoading = false;
 
   @override
@@ -28,6 +34,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     _authorController = TextEditingController(text: widget.bookToEdit?.author ?? '');
     _priceController = TextEditingController(text: widget.bookToEdit?.price.toString() ?? '');
     _descriptionController = TextEditingController(text: widget.bookToEdit?.description ?? '');
+    _existingImageUrls = widget.bookToEdit?.imageUrls ?? [];
   }
 
   @override
@@ -41,10 +48,21 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
 
   Future<void> _saveProduct() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    if (_newImages.isEmpty && _existingImageUrls.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one image')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
     try {
+      // 1. Upload new images
+      final newUrls = await ref.read(storageRepositoryProvider).uploadImages(_newImages);
+      final allUrls = [..._existingImageUrls, ...newUrls];
+
       final title = _titleController.text;
       final author = _authorController.text;
       final price = double.tryParse(_priceController.text) ?? 0.0;
@@ -57,7 +75,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           title: title,
           author: author,
           price: price,
-          imageUrl: widget.bookToEdit!.imageUrl,
+          imageUrls: allUrls,
           description: description,
           sellerId: widget.bookToEdit!.sellerId,
         );
@@ -73,7 +91,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           title: title,
           author: author,
           price: price,
-          imageUrl: 'https://placehold.co/100x150/png?text=${title.split(' ')[0]}',
+          imageUrls: allUrls,
           description: description,
         );
         await ref.read(inventoryProvider.notifier).addBook(newBook);
@@ -108,6 +126,21 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              ProductImagesWidget(
+                initialImages: _newImages,
+                existingImageUrls: _existingImageUrls,
+                onImagesSelected: (images) {
+                  setState(() {
+                    _newImages.addAll(images);
+                  });
+                },
+                onUrlRemoved: (url) {
+                  setState(() {
+                    _existingImageUrls.remove(url);
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(

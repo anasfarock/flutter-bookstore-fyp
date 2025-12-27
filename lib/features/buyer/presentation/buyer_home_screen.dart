@@ -70,9 +70,9 @@ class BuyerHomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: book.imageUrl.isNotEmpty
+                        child: book.imageUrls.isNotEmpty
                             ? Image.network(
-                                book.imageUrl,
+                                book.imageUrls.first,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 errorBuilder: (c, e, s) => Container(
