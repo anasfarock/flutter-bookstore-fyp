@@ -50,7 +50,8 @@ final appRouter = GoRouter(
       path: '/product-details/:id',
       builder: (context, state) {
         final id = state.pathParameters['id']!;
-        return ProductDetailsScreen(bookId: id);
+        final book = state.extra as Book?;
+        return ProductDetailsScreen(bookId: id, book: book);
       },
     ),
     GoRoute(

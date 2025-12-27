@@ -61,7 +61,7 @@ class BuyerHomeScreen extends ConsumerWidget {
               final book = books[index];
               return GestureDetector(
                 onTap: () {
-                  context.push('/product-details', extra: book);
+                  context.push('/product-details/${book.id}', extra: book);
                 },
                 child: Card(
                   clipBehavior: Clip.antiAlias,

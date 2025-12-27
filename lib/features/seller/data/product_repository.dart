@@ -46,6 +46,16 @@ class ProductRepository {
       return snapshot.docs.map((doc) => Book.fromMap(doc.data(), doc.id)).toList();
     });
   }
+
+  // Get Single Book
+  Stream<Book?> getBook(String bookId) {
+    return _firestore.collection('books').doc(bookId).snapshots().map((doc) {
+      if (doc.exists) {
+        return Book.fromMap(doc.data()!, doc.id);
+      }
+      return null;
+    });
+  }
 }
 
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
