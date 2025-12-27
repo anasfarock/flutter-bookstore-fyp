@@ -68,14 +68,19 @@ class RegisterScreen extends StatelessWidget {
                   // Ideally, use a Riverpod provider to hold the form state.
                   // For now, let's just go to buyer home as a demo or ask user.
                   
-                  // Simple hack for this step:
-                  // We can't easily get the dropdown value here without state.
-                  // I will convert this to a ConsumerWidget in the next step to better handle state.
-                  // But for now, let's just pop for "Success".
-                  // Actually, let's just navigate to buyer-home for testing
+                  // Simple hack for demo:
+                  // We'll just check if the last selected value "could" be seller if we had state.
+                  // For now, let's just create two buttons for testing flow:
+                  context.go('/seller-dashboard'); 
+                },
+                child: const Text('Sign Up as Seller (Test)'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
                   context.go('/buyer-home');
                 },
-                child: const Text('Sign Up'),
+                child: const Text('Sign Up as Buyer (Test)'),
               ),
               const SizedBox(height: 16),
               TextButton(
