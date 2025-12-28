@@ -20,10 +20,11 @@ class BuyerProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 50,
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, size: 50, color: Colors.white),
+                  backgroundColor: Colors.grey[200],
+                  backgroundImage: user.profileImage.isNotEmpty ? NetworkImage(user.profileImage) : null,
+                  child: user.profileImage.isEmpty ? const Icon(Icons.person, size: 50, color: Colors.grey) : null,
                 ),
                 const SizedBox(height: 16),
                  Text(

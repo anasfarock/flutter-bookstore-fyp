@@ -6,6 +6,7 @@ class UserModel {
   final String name;
   final String phoneNumber;
   final String description;
+  final String profileImage;
 
   UserModel({
     required this.id,
@@ -14,6 +15,7 @@ class UserModel {
     this.name = '',
     this.phoneNumber = '',
     this.description = '',
+    this.profileImage = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -24,6 +26,7 @@ class UserModel {
       'name': name,
       'phoneNumber': phoneNumber,
       'description': description,
+      'profileImage': profileImage,
     };
   }
 
@@ -35,6 +38,7 @@ class UserModel {
       name: map['name'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
       description: map['description'] ?? '',
+      profileImage: map['profileImage'] ?? '',
     );
   }
 
@@ -42,6 +46,7 @@ class UserModel {
     String? name,
     String? phoneNumber,
     String? description,
+    String? profileImage,
   }) {
     return UserModel(
       id: id,
@@ -50,6 +55,7 @@ class UserModel {
       name: name ?? this.name,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       description: description ?? this.description,
+      profileImage: profileImage ?? this.profileImage,
     );
   }
 }

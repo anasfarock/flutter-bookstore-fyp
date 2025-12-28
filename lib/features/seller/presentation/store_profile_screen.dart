@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import '../../../../core/repositories/storage_repository.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/data/user_repository.dart';
 
@@ -15,12 +18,31 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  File? _newProfileImage;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _descriptionController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _newProfileImage = File(pickedFile.path);
+      });
+    }
   }
 
   @override
@@ -47,19 +69,37 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Implement Image Picker
-                    },
-                    child: Container(
-                      height: 120,
-                      width: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Theme.of(context).primaryColor),
-                      ),
-                      child: const Icon(Icons.add_a_photo, size: 40),
+                   Center(
+                    child: Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundImage: _newProfileImage != null
+                                ? FileImage(_newProfileImage!)
+                                : (user.profileImage.isNotEmpty
+                                    ? NetworkImage(user.profileImage)
+                                    : null) as ImageProvider?,
+                            backgroundColor: Colors.grey[200],
+                            child: (_newProfileImage == null && user.profileImage.isEmpty)
+                                ? const Icon(Icons.store, size: 60, color: Colors.grey)
+                                : null,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -70,7 +110,7 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
                       prefixIcon: Icon(Icons.store),
                     ),
                     validator: (value) =>
-                        value!.isEmpty ? 'Please enter story name' : null,
+                        value!.isEmpty ? 'Please enter name' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -85,12 +125,24 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: () async {
+                    onPressed: _isLoading ? null : () async {
                       if (_formKey.currentState!.validate()) {
+                        setState(() => _isLoading = true);
                         try {
+                           String imageUrl = user.profileImage;
+                           
+                           if (_newProfileImage != null) {
+                             // Upload new image
+                              final newUrls = await ref.read(storageRepositoryProvider).uploadImages([XFile(_newProfileImage!.path)]);
+                              if (newUrls.isNotEmpty) {
+                                imageUrl = newUrls.first;
+                              }
+                           }
+
                            final updatedUser = user.copyWith(
                              name: _nameController.text.trim(),
                              description: _descriptionController.text.trim(),
+                             profileImage: imageUrl,
                            );
                            await ref.read(userRepositoryProvider).saveUser(updatedUser);
                            
@@ -105,10 +157,14 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
                               SnackBar(content: Text('Error: $e')),
                             );
                           }
+                        } finally {
+                          if (mounted) setState(() => _isLoading = false);
                         }
                       }
                     },
-                    child: const Text('Save Profile'),
+                    child: _isLoading 
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                      : const Text('Save Profile'),
                   ),
                   const SizedBox(height: 32),
                   SizedBox(
