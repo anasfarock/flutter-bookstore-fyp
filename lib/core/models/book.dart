@@ -8,6 +8,7 @@ class Book {
   final String description;
   final double rating;
   final String sellerId;
+  final String storeName;
 
   // Compatibility getter for legacy code
   String get imageUrl => imageUrls.isNotEmpty ? imageUrls.first : '';
@@ -21,6 +22,7 @@ class Book {
     required this.description,
     this.rating = 4.5,
     this.sellerId = '',
+    this.storeName = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -33,6 +35,7 @@ class Book {
       'description': description,
       'rating': rating,
       'sellerId': sellerId,
+      'storeName': storeName,
     };
   }
 
@@ -46,6 +49,7 @@ class Book {
       description: map['description'] ?? '',
       rating: (map['rating'] ?? 0.0).toDouble(),
       sellerId: map['sellerId'] ?? '',
+      storeName: map['storeName'] ?? '',
     );
   }
 

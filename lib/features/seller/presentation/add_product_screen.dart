@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/models/book.dart';
 import '../../../core/providers/inventory_provider.dart';
 import '../../../../core/repositories/storage_repository.dart';
+import '../../auth/data/auth_repository.dart';
+import '../../auth/data/user_repository.dart';
 import 'widgets/product_images_widget.dart';
 
 class AddProductScreen extends ConsumerStatefulWidget {
@@ -59,6 +60,14 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Fetch current user data for sellerId and storeName
+      final currentUser = ref.read(authRepositoryProvider).currentUser;
+      if (currentUser == null) throw Exception('User not logged in');
+      
+      final userProfile = await ref.read(userRepositoryProvider).getUser(currentUser.uid);
+      final sellerId = currentUser.uid;
+      final storeName = userProfile?.storeName ?? 'Unknown Store';
+
       // 1. Upload new images
       final newUrls = await ref.read(storageRepositoryProvider).uploadImages(_newImages);
       final allUrls = [..._existingImageUrls, ...newUrls];
@@ -77,7 +86,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           price: price,
           imageUrls: allUrls,
           description: description,
-          sellerId: widget.bookToEdit!.sellerId,
+          sellerId: widget.bookToEdit!.sellerId, // Keep original sellerId
+          storeName: widget.bookToEdit!.storeName, // Keep original storeName or update if needed? Usually store name updates propagate via profile, but here we persist snapshot.
         );
         await ref.read(inventoryProvider.notifier).updateBook(updatedBook);
         if (mounted) {
@@ -93,6 +103,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           price: price,
           imageUrls: allUrls,
           description: description,
+          sellerId: sellerId,
+          storeName: storeName,
         );
         await ref.read(inventoryProvider.notifier).addBook(newBook);
         if (mounted) {

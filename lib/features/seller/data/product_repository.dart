@@ -31,11 +31,13 @@ class ProductRepository {
 
   // Get Seller's Products
   Stream<List<Book>> getSellerBooks(String sellerId) {
+    print('DEBUG: getSellerBooks called for sellerId: $sellerId');
     return _firestore
         .collection('books')
         .where('sellerId', isEqualTo: sellerId)
         .snapshots()
         .map((snapshot) {
+      print('DEBUG: Found ${snapshot.docs.length} books for seller $sellerId');
       return snapshot.docs.map((doc) => Book.fromMap(doc.data(), doc.id)).toList();
     });
   }
@@ -43,6 +45,7 @@ class ProductRepository {
   // Get All Products (for Buyer)
   Stream<List<Book>> getAllBooks() {
     return _firestore.collection('books').snapshots().map((snapshot) {
+      print('DEBUG: getAllBooks found ${snapshot.docs.length} total books');
       return snapshot.docs.map((doc) => Book.fromMap(doc.data(), doc.id)).toList();
     });
   }

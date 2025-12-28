@@ -105,6 +105,16 @@ class BuyerHomeScreen extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                             if (book.storeName.isNotEmpty)
+                              Text(
+                                book.storeName,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.blueGrey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             const SizedBox(height: 4),
                             Text(
                               '\$${book.price.toStringAsFixed(2)}',

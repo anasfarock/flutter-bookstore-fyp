@@ -22,7 +22,9 @@ class InventoryNotifier extends StreamNotifier<List<Book>> {
          docId = ref.read(productRepositoryProvider).generateId();
        }
 
-       final bookWithSeller = Book(
+       // We respect the fields passed from the UI (AddProductScreen)
+       // which already fetches and sets sellerId and storeName correctly.
+       final bookToSave = Book(
          id: docId,
          title: book.title,
          author: book.author,
@@ -30,9 +32,11 @@ class InventoryNotifier extends StreamNotifier<List<Book>> {
          imageUrls: book.imageUrls,
          description: book.description,
          rating: book.rating,
-         sellerId: user.uid,
+         sellerId: book.sellerId.isNotEmpty ? book.sellerId : user.uid,
+         storeName: book.storeName,
        );
-       await ref.read(productRepositoryProvider).addBook(bookWithSeller);
+       print('DEBUG: Adding book: ${bookToSave.title}, SellerID: ${bookToSave.sellerId}, StoreName: ${bookToSave.storeName}');
+       await ref.read(productRepositoryProvider).addBook(bookToSave);
     }
   }
 

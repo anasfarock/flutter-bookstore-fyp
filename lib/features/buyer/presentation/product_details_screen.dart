@@ -82,11 +82,28 @@ class ProductDetailsScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          currentBook.author,
+                          book!.author, // Use book author from currentBook
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.grey,
                           ),
                         ),
+                        if (currentBook.storeName.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.store, size: 16, color: Colors.blueGrey),
+                                const SizedBox(width: 4),
+                                Text(
+                                  currentBook.storeName,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.blueGrey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         const SizedBox(height: 24),
                         Text(
                           'Overview',
