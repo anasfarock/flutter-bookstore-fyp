@@ -15,6 +15,8 @@ import '../../features/buyer/presentation/buyer_profile_screen.dart';
 import '../../features/buyer/presentation/edit_profile_screen.dart';
 import '../../features/buyer/presentation/order_history_screen.dart';
 import '../../features/buyer/presentation/buyer_settings_screen.dart';
+import '../../features/buyer/presentation/order_details_screen.dart';
+import '../../core/models/order_model.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -77,6 +79,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/buyer-settings',
       builder: (context, state) => const BuyerSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/order-details',
+      builder: (context, state) {
+        final order = state.extra as OrderModel;
+        return OrderDetailsScreen(order: order);
+      },
     ),
   ],
 );

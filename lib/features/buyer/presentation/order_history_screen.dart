@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:my_app/features/buyer/data/order_repository.dart';
 import 'package:my_app/features/auth/data/auth_repository.dart';
 import 'package:my_app/core/models/order_model.dart';
@@ -41,8 +42,12 @@ class OrderHistoryScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final order = orders[index];
               final isProcessing = order.status == 'Processing';
-              return Container(
-                padding: const EdgeInsets.all(16),
+              return GestureDetector(
+                onTap: () {
+                  context.push('/order-details', extra: order);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
                  decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
@@ -92,6 +97,7 @@ class OrderHistoryScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
               );
             },
           );
