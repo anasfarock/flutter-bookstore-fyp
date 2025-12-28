@@ -35,6 +35,9 @@ class InventoryList extends ConsumerWidget {
             return Card(
               margin: const EdgeInsets.only(bottom: 16.0),
               child: ListTile(
+                onTap: () {
+                   context.push('/product-details/${book.id}', extra: book);
+                },
                 contentPadding: const EdgeInsets.all(8),
                 leading: Container(
                   width: 50,

@@ -66,7 +66,9 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       
       final userProfile = await ref.read(userRepositoryProvider).getUser(currentUser.uid);
       final sellerId = currentUser.uid;
-      final storeName = userProfile?.storeName ?? 'Unknown Store';
+      final storeName = (userProfile?.storeName.isNotEmpty == true) 
+          ? userProfile!.storeName 
+          : (userProfile?.name ?? 'Unknown Seller');
 
       // 1. Upload new images
       final newUrls = await ref.read(storageRepositoryProvider).uploadImages(_newImages);

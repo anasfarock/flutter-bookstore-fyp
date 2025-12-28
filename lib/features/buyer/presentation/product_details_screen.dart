@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/models/book.dart';
 import '../../../core/providers/cart_provider.dart';
+import '../../auth/data/auth_repository.dart';
 import '../../seller/data/product_repository.dart';
 
 class ProductDetailsScreen extends ConsumerWidget {
@@ -80,9 +81,15 @@ class ProductDetailsScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                        Builder(
+                          builder: (context) {
+                            print('DEBUG: ProductDetails - StoreName: "${currentBook.storeName}" for book: ${currentBook.title}');
+                            return const SizedBox.shrink(); 
+                          },
+                        ),
                         const SizedBox(height: 8),
                         Text(
-                          book!.author, // Use book author from currentBook
+                          currentBook.author, 
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.grey,
                           ),
@@ -129,11 +136,27 @@ class ProductDetailsScreen extends ConsumerWidget {
         },
       ),
       bottomSheet: StreamBuilder<Book?>(
-        stream: bookStream, // Listen to stream to ensure we have latest data for cart
+        stream: bookStream, 
         initialData: book,
         builder: (context, snapshot) {
            final currentBook = snapshot.data;
            if (currentBook == null) return const SizedBox.shrink();
+
+           // Check if current user is the seller
+           final currentUser = ref.watch(authRepositoryProvider).currentUser;
+           final isSeller = currentUser != null && currentUser.uid == currentBook.sellerId;
+
+           if (isSeller) {
+             return Container(
+               padding: const EdgeInsets.all(16),
+               color: Theme.of(context).scaffoldBackgroundColor, // Match background
+               child: const Text(
+                 'You are the seller of this item',
+                 textAlign: TextAlign.center,
+                 style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+               ),
+             );
+           }
 
            return Container(
             padding: const EdgeInsets.all(16),
