@@ -33,11 +33,11 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
         data: (user) {
           if (user == null) return const Center(child: Text('User not found'));
 
-          if (_nameController.text.isEmpty && user.storeName.isNotEmpty) {
-            _nameController.text = user.storeName;
+          if (_nameController.text.isEmpty && user.name.isNotEmpty) {
+            _nameController.text = user.name;
           }
-           if (_descriptionController.text.isEmpty && user.storeDescription.isNotEmpty) {
-            _descriptionController.text = user.storeDescription;
+           if (_descriptionController.text.isEmpty && user.description.isNotEmpty) {
+            _descriptionController.text = user.description;
           }
 
           return SingleChildScrollView(
@@ -89,8 +89,8 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
                       if (_formKey.currentState!.validate()) {
                         try {
                            final updatedUser = user.copyWith(
-                             storeName: _nameController.text.trim(),
-                             storeDescription: _descriptionController.text.trim(),
+                             name: _nameController.text.trim(),
+                             description: _descriptionController.text.trim(),
                            );
                            await ref.read(userRepositoryProvider).saveUser(updatedUser);
                            

@@ -5,8 +5,7 @@ class UserModel {
   final String role; // 'buyer' or 'seller'
   final String name;
   final String phoneNumber;
-  final String storeName;
-  final String storeDescription;
+  final String description;
 
   UserModel({
     required this.id,
@@ -14,8 +13,7 @@ class UserModel {
     required this.role,
     this.name = '',
     this.phoneNumber = '',
-    this.storeName = '',
-    this.storeDescription = '',
+    this.description = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -25,8 +23,7 @@ class UserModel {
       'role': role,
       'name': name,
       'phoneNumber': phoneNumber,
-      'storeName': storeName,
-      'storeDescription': storeDescription,
+      'description': description,
     };
   }
 
@@ -37,16 +34,14 @@ class UserModel {
       role: map['role'] ?? 'buyer',
       name: map['name'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
-      storeName: map['storeName'] ?? '',
-      storeDescription: map['storeDescription'] ?? '',
+      description: map['description'] ?? '',
     );
   }
 
   UserModel copyWith({
     String? name,
     String? phoneNumber,
-    String? storeName,
-    String? storeDescription,
+    String? description,
   }) {
     return UserModel(
       id: id,
@@ -54,8 +49,7 @@ class UserModel {
       role: role,
       name: name ?? this.name,
       phoneNumber: phoneNumber ?? this.phoneNumber,
-      storeName: storeName ?? this.storeName,
-      storeDescription: storeDescription ?? this.storeDescription,
+      description: description ?? this.description,
     );
   }
 }
