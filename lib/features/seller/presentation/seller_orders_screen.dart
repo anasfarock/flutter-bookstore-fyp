@@ -1,13 +1,77 @@
+import 'dart:io';
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/providers/inventory_provider.dart'; 
 import '../../auth/data/auth_repository.dart';
 import '../../buyer/data/order_repository.dart';
 import '../../../core/models/cart_item.dart';
 
+final sellerOrdersProvider = StreamProvider.family<List<OrderModel>, String>((ref, sellerId) {
+  return ref.watch(orderRepositoryProvider).getSellerOrders(sellerId);
+});
+
 class SellerOrdersScreen extends ConsumerWidget {
   const SellerOrdersScreen({super.key});
+
+  Future<void> _exportToCsv(BuildContext context, List<OrderModel> orders, String sellerId) async {
+    if (orders.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No orders to export')),
+      );
+      return;
+    }
+
+    try {
+      List<List<dynamic>> rows = [];
+      // Headers
+      rows.add([
+        'Order ID',
+        'Date',
+        'Book Title',
+        'Quantity',
+        'Unit Price',
+        'Total Price',
+        'Buyer ID'
+      ]);
+
+      // Data
+      for (final order in orders) {
+        final sellerItems = order.items.where((item) => item.book.sellerId == sellerId).toList();
+        
+        for (final item in sellerItems) {
+          rows.add([
+            order.id,
+            order.timestamp.toString(),
+            item.title,
+            item.quantity,
+            item.price.toStringAsFixed(2),
+            item.totalPrice.toStringAsFixed(2),
+            order.userId,
+          ]);
+        }
+      }
+
+      final csvData = const ListToCsvConverter().convert(rows);
+      final directory = await getTemporaryDirectory();
+      final path = '${directory.path}/seller_orders.csv';
+      final file = File(path);
+      await file.writeAsString(csvData);
+
+      if (context.mounted) {
+        await Share.shareXFiles([XFile(path)], text: 'Here are your orders.');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error exporting CSV: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,25 +83,24 @@ class SellerOrdersScreen extends ConsumerWidget {
       );
     }
 
-    final ordersStream = ref.watch(orderRepositoryProvider).getSellerOrders(user.uid);
+    final ordersAsync = ref.watch(sellerOrdersProvider(user.uid));
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Incoming Orders'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Export CSV',
+            onPressed: () {
+              final orders = ordersAsync.asData?.value ?? [];
+              _exportToCsv(context, orders, user.uid);
+            },
+          ),
+        ],
       ),
-      body: StreamBuilder<List<OrderModel>>(
-        stream: ordersStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final orders = snapshot.data ?? [];
-
+      body: ordersAsync.when(
+        data: (orders) {
           if (orders.isEmpty) {
             return const Center(
               child: Column(
@@ -99,6 +162,8 @@ class SellerOrdersScreen extends ConsumerWidget {
             },
           );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
   }
