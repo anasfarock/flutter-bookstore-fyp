@@ -23,12 +23,34 @@ class BuyerHomeScreen extends ConsumerStatefulWidget {
 class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
   SortOption _currentSortOption = SortOption.relevance;
 
-  List<Book> _sortBooks(List<Book> books) {
+  // Filter State
+  RangeValues _selectedPriceRange = const RangeValues(0, 500); 
+  double _minRating = 0;
+  List<String> _selectedGenres = [];
+
+  // Helper to process (Filter + Sort) books
+  List<Book> _processBooks(List<Book> books) {
     if (books.isEmpty) return [];
     
-    // Create a copy to avoid modifying the original list
-    final sortedBooks = List<Book>.from(books);
+    // 1. Filter
+    var filteredBooks = books.where((book) {
+      // Genre Filter
+      if (_selectedGenres.isNotEmpty && !_selectedGenres.contains(book.genre)) {
+        return false;
+      }
+      // Price Filter
+      if (book.price < _selectedPriceRange.start || book.price > _selectedPriceRange.end) {
+        return false;
+      }
+      // Rating Filter
+      if (book.rating < _minRating) {
+        return false;
+      }
+      return true;
+    }).toList();
 
+    // 2. Sort
+    final sortedBooks = List<Book>.from(filteredBooks); // Create mutable copy
     switch (_currentSortOption) {
       case SortOption.priceLowToHigh:
         sortedBooks.sort((a, b) => a.price.compareTo(b.price));
@@ -44,10 +66,186 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
         break;
       case SortOption.relevance:
       default:
-        // Keep original order (or random/default from DB)
+        // Keep original order
         break;
     }
     return sortedBooks;
+  }
+
+  void _showFilterModal(BuildContext context, List<Book> allBooks) {
+    // Calculate dynamic values
+    double maxPrice = 100;
+    if (allBooks.isNotEmpty) {
+      final maxBookPrice = allBooks.map((e) => e.price).reduce((a, b) => a > b ? a : b);
+      maxPrice = (maxBookPrice / 10).ceil() * 10.0 + 10; // Round up to nearest 10 + buffer
+    }
+    
+    final allGenres = allBooks.map((e) => e.genre).toSet().toList()..sort();
+
+    // Temp state for the modal
+    RangeValues tempPriceRange = _selectedPriceRange;
+    // ensure temp range is within sensible bounds if maxPrice changed drastically
+    if (tempPriceRange.end > maxPrice) {
+      tempPriceRange = RangeValues(tempPriceRange.start, maxPrice);
+    }
+    
+    double tempMinRating = _minRating;
+    List<String> tempSelectedGenres = List.from(_selectedGenres);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              expand: false,
+              builder: (context, scrollController) {
+                return Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Filters', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                tempPriceRange = RangeValues(0, maxPrice);
+                                tempMinRating = 0;
+                                tempSelectedGenres = [];
+                              });
+                            },
+                            child: const Text('Reset'),
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          children: [
+                            // Price Range
+                            const Text('Price Range', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            RangeSlider(
+                              values: tempPriceRange,
+                              min: 0,
+                              max: maxPrice,
+                              divisions: 20,
+                              labels: RangeLabels(
+                                '\$${tempPriceRange.start.round()}',
+                                '\$${tempPriceRange.end.round()}',
+                              ),
+                              onChanged: (RangeValues values) {
+                                setModalState(() {
+                                  tempPriceRange = values;
+                                });
+                              },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('\$${tempPriceRange.start.toStringAsFixed(0)}'),
+                                Text('\$${tempPriceRange.end.toStringAsFixed(0)}'),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Rating
+                            const Text('Minimum Rating', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Slider(
+                              value: tempMinRating,
+                              min: 0,
+                              max: 5,
+                              divisions: 5,
+                              label: tempMinRating.toString(),
+                              onChanged: (value) {
+                                setModalState(() {
+                                  tempMinRating = value;
+                                });
+                              },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Any'),
+                                Text('${tempMinRating.toInt()}+ Stars'),
+                                const Text('5 Stars'),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Genres
+                            const Text('Genres', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: allGenres.map((genre) {
+                                final isSelected = tempSelectedGenres.contains(genre);
+                                return FilterChip(
+                                  label: Text(genre),
+                                  selected: isSelected,
+                                  onSelected: (bool selected) {
+                                    setModalState(() {
+                                      if (selected) {
+                                        tempSelectedGenres.add(genre);
+                                      } else {
+                                        tempSelectedGenres.remove(genre);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedPriceRange = tempPriceRange;
+                              _minRating = tempMinRating;
+                              _selectedGenres = tempSelectedGenres;
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Apply Filters'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -66,6 +264,14 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                 context: context,
                 delegate: BookSearchDelegate(books),
               );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'Filter',
+            onPressed: () {
+               final books = booksAsync.asData?.value ?? [];
+              _showFilterModal(context, books);
             },
           ),
           PopupMenuButton<SortOption>(
@@ -119,7 +325,31 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
             return const Center(child: Text('No books available for sale.'));
           }
 
-          final sortedBooks = _sortBooks(books);
+          final processedBooks = _processBooks(books);
+          
+          if (processedBooks.isEmpty) {
+             return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.filter_list_off, size: 48, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text('No books match your filters.', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 8),
+                   TextButton(
+                    onPressed: () {
+                       setState(() {
+                         _selectedPriceRange = const RangeValues(0, 500);
+                         _minRating = 0;
+                         _selectedGenres = [];
+                       });
+                    },
+                    child: const Text('Clear Filters'),
+                  ),
+                ],
+              ),
+            );
+          }
 
           return GridView.builder(
             padding: const EdgeInsets.all(16.0),
@@ -129,9 +359,9 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
               crossAxisSpacing: 16.0,
               mainAxisSpacing: 16.0,
             ),
-            itemCount: sortedBooks.length,
+            itemCount: processedBooks.length,
             itemBuilder: (context, index) {
-              final book = sortedBooks[index];
+              final book = processedBooks[index];
               return GestureDetector(
                 onTap: () {
                   context.push('/product-details/${book.id}', extra: book);
