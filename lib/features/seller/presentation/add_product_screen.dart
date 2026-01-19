@@ -220,6 +220,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _selectedGenre,
+                      isExpanded: true, // Fix overflow by allowing dropdown to expand and constrain text
                       decoration: const InputDecoration(
                         labelText: 'Genre',
                         prefixIcon: Icon(Icons.category),
@@ -227,7 +228,10 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                       items: _genreOptions.map((String genre) {
                         return DropdownMenuItem<String>(
                           value: genre,
-                          child: Text(genre),
+                          child: Text(
+                            genre,
+                            overflow: TextOverflow.ellipsis, // Truncate text if too long
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {

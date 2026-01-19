@@ -184,6 +184,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                             flex: 1,
                             child: DropdownButtonFormField<String>(
                               value: _selectedGenre,
+                              isExpanded: true, // Fix overflow
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 8),
