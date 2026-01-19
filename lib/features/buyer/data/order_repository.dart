@@ -76,10 +76,11 @@ class OrderRepository {
     return _firestore
         .collection('orders')
         .where('sellerIds', arrayContains: sellerId)
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => OrderModel.fromMap(doc.data(), doc.id)).toList();
+      final orders = snapshot.docs.map((doc) => OrderModel.fromMap(doc.data(), doc.id)).toList();
+      orders.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return orders;
     });
   }
 }
