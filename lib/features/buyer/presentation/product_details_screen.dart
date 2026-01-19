@@ -75,7 +75,7 @@ class ProductDetailsScreen extends ConsumerWidget {
                             Text(
                               '\$${currentBook.price.toStringAsFixed(2)}',
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).primaryColor,
+                                color: Colors.grey[600],
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -100,13 +100,13 @@ class ProductDetailsScreen extends ConsumerWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                color: Colors.deepPurple[50], // Light background for genre
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 currentBook.genre,
-                                style: TextStyle(
-                                  color: Theme.of(context).primaryColor,
+                                style: const TextStyle(
+                                  color: Colors.deepPurple, // Distinct color for genre text
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

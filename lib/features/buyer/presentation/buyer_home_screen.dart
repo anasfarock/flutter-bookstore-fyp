@@ -414,13 +414,13 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                    color: Colors.deepPurple[50], // Light background for genre
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
                                     book.genre,
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
+                                    style: const TextStyle(
+                                      color: Colors.deepPurple, // Distinct color for genre text
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -454,7 +454,7 @@ class _BuyerHomeScreenState extends ConsumerState<BuyerHomeScreen> {
                             Text(
                               '\$${book.price.toStringAsFixed(2)}',
                               style: TextStyle(
-                                color: Theme.of(context).primaryColor,
+                                color: Colors.grey[600], // Light grey for price
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
