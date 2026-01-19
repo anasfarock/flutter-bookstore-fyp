@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../models/book.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/seller/presentation/seller_orders_screen.dart';
 import '../../features/seller/presentation/seller_dashboard_screen.dart';
 import '../../features/seller/presentation/store_profile_screen.dart';
 import '../../features/seller/presentation/add_product_screen.dart';
@@ -32,6 +33,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/seller-dashboard',
       builder: (context, state) => const SellerDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/seller-orders',
+      builder: (context, state) => const SellerOrdersScreen(),
     ),
     GoRoute(
       path: '/store-profile',

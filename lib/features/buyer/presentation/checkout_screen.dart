@@ -71,6 +71,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 setState(() => _isLoading = true);
                 
                 try {
+                  print('DEBUG: Place Order button pressed');
+                  print('DEBUG: User is logged in: ${user.uid}');
+                  print('DEBUG: Cart has ${cartItems.length} items');
+
+                  final sellerIds = cartItems
+                      .map((item) => item.book.sellerId)
+                      .where((id) => id.isNotEmpty)
+                      .toSet()
+                      .toList();
+
                   final orderId = const Uuid().v4();
                   final order = OrderModel(
                     id: orderId,
@@ -79,10 +89,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     totalAmount: totalAmount,
                     status: 'Processing',
                     timestamp: DateTime.now(),
+                    sellerIds: sellerIds,
                   );
 
                   // Create Order
+                  print('DEBUG: Calling createOrder...');
                   await ref.read(orderRepositoryProvider).createOrder(order);
+                  print('DEBUG: createOrder returned. Clearing cart...');
                   
                   // Clear Cart
                   await ref.read(cartProvider.notifier).clearCart();
@@ -110,7 +123,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 } catch (e) {
                   if (mounted) {
                     setState(() => _isLoading = false);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Checkout failed: $e')));
+                    final errorMessage = e.toString().replaceAll('Exception: ', '');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(errorMessage),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
                   }
                 }
               },

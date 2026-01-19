@@ -46,7 +46,10 @@ class ProductRepository {
   Stream<List<Book>> getAllBooks() {
     return _firestore.collection('books').snapshots().map((snapshot) {
       print('DEBUG: getAllBooks found ${snapshot.docs.length} total books');
-      return snapshot.docs.map((doc) => Book.fromMap(doc.data(), doc.id)).toList();
+      return snapshot.docs
+          .map((doc) => Book.fromMap(doc.data(), doc.id))
+          .where((book) => book.quantity > 0)
+          .toList();
     });
   }
 

@@ -61,6 +61,24 @@ class InventoryList extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(book.author, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    if (book.quantity < 5)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Low Stock: Only ${book.quantity} left',
+                              style: const TextStyle(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     const SizedBox(height: 4),
                     Text(
                       '\$${book.price.toStringAsFixed(2)}',

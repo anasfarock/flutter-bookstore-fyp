@@ -9,6 +9,7 @@ class OrderModel {
   final double totalAmount;
   final String status;
   final DateTime timestamp;
+  final List<String> sellerIds;
 
   OrderModel({
     required this.id,
@@ -17,6 +18,7 @@ class OrderModel {
     required this.totalAmount,
     required this.status,
     required this.timestamp,
+    required this.sellerIds,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,6 +29,7 @@ class OrderModel {
       'totalAmount': totalAmount,
       'status': status,
       'timestamp': Timestamp.fromDate(timestamp),
+      'sellerIds': sellerIds,
     };
   }
 
@@ -41,6 +44,7 @@ class OrderModel {
       totalAmount: (map['totalAmount'] ?? 0.0).toDouble(),
       status: map['status'] ?? 'Processing',
       timestamp: (map['timestamp'] as Timestamp).toDate(),
+      sellerIds: List<String>.from(map['sellerIds'] ?? []),
     );
   }
 }
