@@ -43,7 +43,8 @@ class BookSearchDelegate extends SearchDelegate {
   Widget _buildList(BuildContext context) {
     final results = books.where((book) {
       return book.title.toLowerCase().contains(query.toLowerCase()) ||
-          book.author.toLowerCase().contains(query.toLowerCase());
+          book.author.toLowerCase().contains(query.toLowerCase()) ||
+          book.genre.toLowerCase().contains(query.toLowerCase());
     }).toList();
 
     return ListView.builder(

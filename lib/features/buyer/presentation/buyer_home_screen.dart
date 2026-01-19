@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/models/book.dart';
-import '../../seller/data/product_repository.dart';
+import '../../seller/data/all_books_provider.dart';
+import 'widgets/book_search_delegate.dart';
 
 class BuyerHomeScreen extends ConsumerWidget {
   const BuyerHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final booksAsync = ref.watch(allBooksProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bookstore'),
@@ -16,7 +19,11 @@ class BuyerHomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              // Search feature to be implemented
+              final books = booksAsync.asData?.value ?? [];
+              showSearch(
+                context: context,
+                delegate: BookSearchDelegate(books),
+              );
             },
           ),
           IconButton(
@@ -33,19 +40,10 @@ class BuyerHomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: StreamBuilder<List<Book>>(
-        stream: ref.watch(productRepositoryProvider).getAllBooks(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-             return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final books = snapshot.data ?? [];
-
+      body: booksAsync.when(
+        data: (books) {
           if (books.isEmpty) {
-             return const Center(child: Text('No books available for sale.'));
+            return const Center(child: Text('No books available for sale.'));
           }
 
           return GridView.builder(
@@ -154,6 +152,8 @@ class BuyerHomeScreen extends ConsumerWidget {
             },
           );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
   }

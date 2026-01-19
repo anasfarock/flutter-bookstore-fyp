@@ -6,7 +6,14 @@ import 'package:my_app/core/providers/inventory_provider.dart';
 import 'package:my_app/core/models/book.dart';
 
 class InventoryList extends ConsumerWidget {
-  const InventoryList({super.key});
+  final String searchQuery;
+  final String selectedGenre;
+
+  const InventoryList({
+    super.key,
+    this.searchQuery = '',
+    this.selectedGenre = 'All',
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,11 +34,27 @@ class InventoryList extends ConsumerWidget {
           );
         }
 
+        final filteredBooks = books.where((book) {
+          final matchesSearch = book.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              book.author.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              book.genre.toLowerCase().contains(searchQuery.toLowerCase());
+          final matchesGenre = selectedGenre == 'All' || book.genre == selectedGenre;
+          return matchesSearch && matchesGenre;
+        }).toList();
+
+        if (filteredBooks.isEmpty) {
+           if (books.isNotEmpty) {
+             return const Center(child: Text('No books match your search.'));
+           }
+           // ... original empty state logic if books was empty initially? 
+           // actually better to check original books.isEmpty first.
+        }
+
         return ListView.builder(
           padding: const EdgeInsets.all(16.0),
-          itemCount: books.length,
+          itemCount: filteredBooks.length,
           itemBuilder: (context, index) {
-            final book = books[index];
+            final book = filteredBooks[index];
             return Card(
               margin: const EdgeInsets.only(bottom: 16.0),
               child: ListTile(
