@@ -9,6 +9,8 @@ class Book {
   final double rating;
   final String sellerId;
   final String storeName;
+  final int quantity;
+  final String genre;
 
   // Compatibility getter for legacy code
   String get imageUrl => imageUrls.isNotEmpty ? imageUrls.first : '';
@@ -23,6 +25,8 @@ class Book {
     this.rating = 4.5,
     this.sellerId = '',
     this.storeName = '',
+    required this.quantity,
+    required this.genre,
   });
 
   Map<String, dynamic> toMap() {
@@ -36,6 +40,8 @@ class Book {
       'rating': rating,
       'sellerId': sellerId,
       'storeName': storeName,
+      'quantity': quantity,
+      'genre': genre,
     };
   }
 
@@ -50,6 +56,8 @@ class Book {
       rating: (map['rating'] ?? 0.0).toDouble(),
       sellerId: map['sellerId'] ?? '',
       storeName: map['storeName'] ?? '',
+      quantity: map['quantity'] ?? 1,
+      genre: map['genre'] ?? 'Fiction',
     );
   }
 
@@ -63,6 +71,8 @@ class Book {
           imageUrls: ['https://placehold.co/200x300/png?text=Gatsby'],
           description: 'The story of the fabulously wealthy Jay Gatsby and his new love for the beautiful Daisy Buchanan.',
           sellerId: 'mock_seller',
+          quantity: 10,
+          genre: 'Fiction',
         ),
         Book(
           id: '2',
@@ -72,6 +82,8 @@ class Book {
           imageUrls: ['https://placehold.co/200x300/png?text=1984'],
           description: 'Among the seminal texts of the 20th century, Nineteen Eighty-Four is a rare work that grows more haunting as its futuristic purgatory becomes more real.',
           sellerId: 'mock_seller',
+          quantity: 15,
+          genre: 'Science Fiction',
         ),
         Book(
           id: '3',
@@ -81,6 +93,8 @@ class Book {
           imageUrls: ['https://placehold.co/200x300/png?text=Flutter'],
           description: 'Build for iOS and Android with Flutter!',
           sellerId: 'mock_seller',
+          quantity: 5,
+          genre: 'Technology',
         ),
         Book(
           id: '4',
@@ -90,6 +104,8 @@ class Book {
           imageUrls: ['https://placehold.co/200x300/png?text=Clean+Code'],
           description: 'Even bad code can function. But if code isn\'t clean, it can bring a development organization to its knees.',
           sellerId: 'mock_seller',
+          quantity: 8,
+          genre: 'Technology',
         ),
          Book(
           id: '5',
@@ -99,6 +115,8 @@ class Book {
           imageUrls: ['https://placehold.co/200x300/png?text=Pragmatic'],
           description: 'The Pragmatic Programmer cuts through the increasing specialization and technicalities of modern software development.',
           sellerId: 'mock_seller',
+          quantity: 7,
+          genre: 'Technology',
         ),
       ];
 }

@@ -53,7 +53,7 @@ class BookSearchDelegate extends SearchDelegate {
         return ListTile(
           leading: Image.network(book.imageUrl, width: 40, fit: BoxFit.cover),
           title: Text(book.title),
-          subtitle: Text(book.author),
+          subtitle: Text('${book.author} • ${book.genre}'),
           onTap: () {
             close(context, null);
             context.push('/product-details/${book.id}');

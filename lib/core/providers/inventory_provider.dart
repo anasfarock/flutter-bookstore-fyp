@@ -34,6 +34,8 @@ class InventoryNotifier extends StreamNotifier<List<Book>> {
          rating: book.rating,
          sellerId: book.sellerId.isNotEmpty ? book.sellerId : user.uid,
          storeName: book.storeName,
+         quantity: book.quantity,
+         genre: book.genre,
        );
        print('DEBUG: Adding book: ${bookToSave.title}, SellerID: ${bookToSave.sellerId}, StoreName: ${bookToSave.storeName}');
        await ref.read(productRepositoryProvider).addBook(bookToSave);

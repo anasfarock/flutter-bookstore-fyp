@@ -22,7 +22,23 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   late TextEditingController _titleController;
   late TextEditingController _authorController;
   late TextEditingController _priceController;
+  late TextEditingController _quantityController;
   late TextEditingController _descriptionController;
+
+  String _selectedGenre = 'Fiction';
+  final List<String> _genreOptions = [
+    'Fiction',
+    'Non-fiction',
+    'Mystery',
+    'Fantasy',
+    'Science Fiction',
+    'Biography',
+    'History',
+    'Romance',
+    'Thriller',
+    'Technology',
+    'Children',
+  ];
   
   List<XFile> _newImages = [];
   List<String> _existingImageUrls = [];
@@ -34,7 +50,12 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     _titleController = TextEditingController(text: widget.bookToEdit?.title ?? '');
     _authorController = TextEditingController(text: widget.bookToEdit?.author ?? '');
     _priceController = TextEditingController(text: widget.bookToEdit?.price.toString() ?? '');
+    _quantityController = TextEditingController(text: widget.bookToEdit?.quantity.toString() ?? '1');
     _descriptionController = TextEditingController(text: widget.bookToEdit?.description ?? '');
+    
+    if (widget.bookToEdit != null && _genreOptions.contains(widget.bookToEdit!.genre)) {
+      _selectedGenre = widget.bookToEdit!.genre;
+    }
     _existingImageUrls = widget.bookToEdit?.imageUrls ?? [];
   }
 
@@ -43,6 +64,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     _titleController.dispose();
     _authorController.dispose();
     _priceController.dispose();
+    _quantityController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -75,6 +97,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       final title = _titleController.text;
       final author = _authorController.text;
       final price = double.tryParse(_priceController.text) ?? 0.0;
+      final quantity = int.tryParse(_quantityController.text) ?? 1;
+      final genre = _selectedGenre;
       final description = _descriptionController.text;
       final isEditing = widget.bookToEdit != null;
 
@@ -88,6 +112,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           description: description,
           sellerId: widget.bookToEdit!.sellerId, // Keep original sellerId
           storeName: widget.bookToEdit!.storeName, // Keep original storeName or update if needed? Usually store name updates propagate via profile, but here we persist snapshot.
+          quantity: quantity,
+          genre: genre,
         );
         await ref.read(inventoryProvider.notifier).updateBook(updatedBook);
         if (mounted) {
@@ -105,6 +131,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           description: description,
           sellerId: sellerId,
           storeName: storeName,
+          quantity: quantity,
+          genre: genre,
         );
         await ref.read(inventoryProvider.notifier).addBook(newBook);
         if (mounted) {
@@ -185,6 +213,49 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                   if (double.tryParse(value) == null) return 'Invalid number';
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+               Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedGenre,
+                      decoration: const InputDecoration(
+                        labelText: 'Genre',
+                        prefixIcon: Icon(Icons.category),
+                      ),
+                      items: _genreOptions.map((String genre) {
+                        return DropdownMenuItem<String>(
+                          value: genre,
+                          child: Text(genre),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            _selectedGenre = newValue;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _quantityController,
+                      decoration: const InputDecoration(
+                        labelText: 'Quantity',
+                        prefixIcon: Icon(Icons.inventory),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Required';
+                        if (int.tryParse(value) == null) return 'Invalid number';
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
                TextFormField(
